@@ -1,6 +1,7 @@
 package com.branden;
 
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,18 +41,15 @@ public class Essential3 {
     private static final String USER = "testuser"; // global user name
     private static final String PASSWORD = "password"; // global password
     private static Connection connection = null; // global connection
-    private  Statement st = null;
+    private Statement st = null;
     private PreparedStatement preparedSelectByName = null;
     private PreparedStatement preparedInsert = null;
     private PreparedStatement preparedUpdateTime = null;
 
-    private  Scanner scanner = new Scanner( System.in );
-
-    private int userSelection; // used to control main program loop
-    private boolean addAnother = true; // control main program loop
     private HashMap<String, Double> seedData = new HashMap<>(); // used for storing seed data
 
-    public void run(){
+    // Renamed to fix constructor typo
+    Essential3(){
         try {
             Class.forName(JDBC_DRIVER);
         } catch (ClassNotFoundException cnf){
@@ -71,7 +69,7 @@ public class Essential3 {
         }
          try{
 
-             st = connection.createStatement();
+             st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
              //https://dev.mysql.com/doc/refman/5.5/en/create-table.html
              st.execute("CREATE TABLE IF NOT EXISTS Cubes (Solver VARCHAR(60), SolveTime FLOAT(3)) ");
          } catch (SQLException err){
@@ -85,71 +83,14 @@ public class Essential3 {
          }catch (SQLException exception){
              System.out.println("Error seeding database :\n"+exception );
          }
-         // always true, will exit loop when user selects quit from menu
-         while( addAnother ) {
-             userSelection = getUserSelection();
+    }
 
-             switch (userSelection) {
-                 case 1: {
-                     getSolverInfo();
-                     break;
-                 }
-                 case 2: {
-                     showTable();
-                     updateTimeEntry();
-                     break;
-                 }
-                 case 3: {
-                     showTable();
-                     break;
-                 }
-                 case 4: {
-                     //exit loop and //return to main and exit
-                     System.out.println("Goodbye");
-                     addAnother = false;
-                     break;
-                 }
-                 default: {
-                     //exit return to main and exit;
-                     return;
-                 }
-             }
-         }
-         //return to main and exit
-         return;
-    }
-    // get user selection
-    private int getUserSelection(){
-        printMenu();
-        while ( !scanner.hasNextInt() ){
-            System.out.println("Please enter a valid selection");
-            scanner.next();
-        }
-        return scanner.nextInt();
-    }
-    // print options menu
-    private void printMenu(){
-        System.out.println("Enter your selection.");
-        System.out.println("1. Add New Solver");
-        System.out.println("2. Update Solver");
-        System.out.println("3. Show Table");
-        System.out.println("4. Quit");
-    }
-    // get info for adding new database entry
-    private void getSolverInfo(){
-        String name = getStringWithScanner("Enter name of solver");
-        double solveTime = getDoubleWithScanner("Enter solve time");
-        try {
-            addToDatabase(name, solveTime);
-        } catch (SQLException exception){
-            System.out.println("Error adding solver info to the database." + exception);
-        }
-    }
-    private void addToDatabase(String name, double solveTime) throws SQLException{
+    public void addToDatabase(String name, double solveTime) throws SQLException{
         // set name and solve time
         preparedInsert.setString(1, name);
         preparedInsert.setDouble(2, solveTime);
         preparedInsert.execute();
+
     }
     private ResultSet searchByName(String name)throws SQLException{
         // https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
@@ -159,18 +100,6 @@ public class Essential3 {
         // it can be used in a while loop to iterate through the result set.
         preparedSelectByName.setString(1, "%"+name+"%");
         return preparedSelectByName.executeQuery();
-    }
-    private String getStringWithScanner(String prompt){
-        System.out.println(prompt);
-        String input = scanner.next();
-        return input;
-    }
-    private double getDoubleWithScanner(String prompt) {
-        System.out.println(prompt);
-        while (!scanner.hasNextDouble()) {
-            System.out.println("Please enter the solve time");
-        }
-        return scanner.nextDouble();
     }
 
     private void seedDatabase() throws SQLException{
@@ -188,36 +117,20 @@ public class Essential3 {
 
         }
     }
-    private void showTable(){
+    public ResultSet getAllFromCubes(){
         ResultSet rs = null;
-        System.out.println("Name : Time");
+        //System.out.println("Name : Time");
         try {
             rs = st.executeQuery("SELECT * FROM Cubes");
-            printResults( rs );
-            System.out.println("");
+            //System.out.println("");
         }catch (SQLException exc){
             System.out.println("Problem with selecting from database"+ exc);
         }
+        return rs;
+
     }
-    private void updateTimeEntry(){
-        Boolean isThisRight = false;
-        ResultSet rs;
-        String name = null;
-        String userInput;
-        try {
-            while( !isThisRight ){
-                name = getStringWithScanner("Enter name to update");
-                rs = searchByName(name);
-                printResults(rs);
-                userInput = getStringWithScanner("Is this the right record to update? Y or N or enter Q to quit");
-                if (userInput.equalsIgnoreCase("y")){
-                    isThisRight = true;
-                } else if ( userInput.equalsIgnoreCase("q")){
-                    // return to main loop
-                    return;
-                }
-            }
-            Double newTime = getDoubleWithScanner("Enter new time");
+    private void updateTimeEntry( double newTime, String name){
+       try{
             preparedUpdateTime.setDouble(1, newTime);
             preparedUpdateTime.setString(2, "%"+name+"%");
             preparedUpdateTime.executeUpdate();
