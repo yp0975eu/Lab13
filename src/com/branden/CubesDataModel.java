@@ -42,8 +42,9 @@ public class CubesDataModel extends AbstractTableModel {
     }
 
     @Override
+    // return column count minus 1. We have 3 columns, the last is the ID which doesn't need to be displayed.3
     public int getColumnCount() {
-        return columnCount;
+        return columnCount -1;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class CubesDataModel extends AbstractTableModel {
             rs.updateString(DatabaseManagerForm.SOLVER_NAME_COLUMN, name);
             rs.insertRow();
             rs.moveToCurrentRow();
-            //http://docs.oracle.com/javase/tutorial/uiswing/components/table.html
+            //https://docs.oracle.com/javase/7/docs/api/javax/swing/table/AbstractTableModel.html#fireTableDataChanged()
             fireTableDataChanged();
         } catch (SQLException ex){
             System.out.println("Error with insert row " + ex);
