@@ -65,8 +65,13 @@ public class CubesDataModel extends AbstractTableModel {
     }
     @Override
     public boolean isCellEditable(int row,int column){
-        // magic number
-        return column == 1;
+        try {
+            return column == rs.findColumn(DatabaseManagerForm.SOLVER_TIME_COLUMN);
+        } catch (SQLException ex){
+            System.out.println("Error finding column " + ex);
+        }
+        // if there is an error then return false and not enabel editing
+        return false;
     }
     //https://docs.oracle.com/javase/7/docs/api/javax/swing/JTable.html#setValueAt(java.lang.Object,%20int,%20int)
     @Override
