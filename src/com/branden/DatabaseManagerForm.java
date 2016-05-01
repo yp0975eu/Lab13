@@ -11,7 +11,6 @@ public class DatabaseManagerForm extends JFrame{
     private JTextField solverTimeTextField;
     private JButton addButton;
     private JButton deleteSolverButton;
-    private JButton updateSolverButton;
     private JTable solverTable;
     private JLabel timeErrorLabel;
     private Essential3 databaseApp;
@@ -63,7 +62,19 @@ public class DatabaseManagerForm extends JFrame{
                         //databaseApp.addToDatabase(name, time);
                         // update model
                     cubesDataModel.insertRow(name, time);
+
                 }
+            }
+        });
+        deleteSolverButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int row = solverTable.getSelectedRow();
+                // from movieForm example
+                if (row != -1) {      // -1 means no row is selected.
+                    cubesDataModel.remove(row);
+                }
+
             }
         });
     }

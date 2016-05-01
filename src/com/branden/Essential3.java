@@ -71,7 +71,7 @@ public class Essential3 {
 
              st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
              //https://dev.mysql.com/doc/refman/5.5/en/create-table.html
-             st.execute("CREATE TABLE IF NOT EXISTS Cubes (Solver VARCHAR(60), SolveTime FLOAT(3)) ");
+             st.execute("CREATE TABLE IF NOT EXISTS Cubes (id int NOT NULL AUTO_INCREMENT, Solver VARCHAR(60), SolveTime FLOAT(3), primary key (id)) ");
          } catch (SQLException err){
              System.out.println("Error with statement  :" + err);
              // if error return to main
